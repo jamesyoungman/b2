@@ -107,7 +107,8 @@ public:
     void AddFilter(std::string title,const std::vector<std::string> extensions);
     void AddAllFilesFilter();
 
-    void AddCheckbox(std::string caption,bool initial_value);
+    size_t AddCheckbox(std::string caption,bool initial_value);
+    bool GetCheckboxValue(size_t index) const;
 protected:
     std::string m_default_dir;
     std::string m_default_name;

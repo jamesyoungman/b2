@@ -16,9 +16,11 @@ void MessageBox(const std::string &title,const std::string &text);
 //////////////////////////////////////////////////////////////////////////
 
 std::string OpenFileDialogGTK(const std::vector<OpenFileDialog::Filter> &filters,
+                              std::vector<OpenFileDialog::Checkbox> *checkboxes,
                               const std::string &default_path);
 
 std::string SaveFileDialogGTK(const std::vector<OpenFileDialog::Filter> &filters,
+                              std::vector<OpenFileDialog::Checkbox> *checkboxes,
                               const std::string &default_path);
 
 std::string SelectFolderDialogGTK(const std::string &default_path);

@@ -257,8 +257,10 @@ private:
     struct DriveState {
         SaveFileDialog new_disc_image_file_dialog;
         OpenFileDialog open_disc_image_file_dialog;
+        size_t open_disc_image_write_protected;
         SaveFileDialog new_direct_disc_image_file_dialog;
         OpenFileDialog open_direct_disc_image_file_dialog;
+        size_t open_direct_disc_image_write_protected;
 
         DriveState();
     };

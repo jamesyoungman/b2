@@ -141,14 +141,15 @@ BeebWindow::DriveState::DriveState():
 
         this->open_disc_image_file_dialog.AddFilter("BBC disc images",extensions);
         this->open_disc_image_file_dialog.AddAllFilesFilter();
-        this->open_disc_image_file_dialog.AddCheckbox("Write protect",false);
-        this->open_disc_image_file_dialog.AddCheckbox("Auto save",false);
+        this->open_disc_image_write_protected=this->open_disc_image_file_dialog.AddCheckbox("Write protect",false);
+        //this->open_disc_image_file_dialog.AddCheckbox("blah blah blah",false);
     }
 
     this->new_direct_disc_image_file_dialog.AddFilter("BBC disc images",DISC_IMAGE_EXTENSIONS);
 
     this->open_direct_disc_image_file_dialog.AddFilter("BBC disc images",DISC_IMAGE_EXTENSIONS);
     this->open_direct_disc_image_file_dialog.AddAllFilesFilter();
+    this->open_direct_disc_image_write_protected=~(size_t)0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1382,6 +1383,7 @@ void BeebWindow::DoDiscImageSubMenu(int drive,bool boot) {
                            "Recent disc image",
                            &m_msg);
     if(file_item.load) {
+        printf("read only: %d\n",d->open_disc_image_file_dialog.GetCheckboxValue(d->open_disc_image_write_protected));
         std::shared_ptr<MemoryDiscImage> new_disc_image;
         if(file_item.new_disc_type) {
             new_disc_image=MemoryDiscImage::LoadFromBuffer(file_item.path,

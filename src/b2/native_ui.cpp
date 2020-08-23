@@ -251,13 +251,24 @@ void FileDialog::AddAllFilesFilter() {
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 
-void FileDialog::AddCheckbox(std::string caption,bool initial_value) {
+size_t FileDialog::AddCheckbox(std::string caption,bool initial_value) {
     Checkbox c;
 
     c.caption=std::move(caption);
     c.value=initial_value;
 
     m_checkboxes.push_back(std::move(c));
+
+    return m_checkboxes.size()-1;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
+bool FileDialog::GetCheckboxValue(size_t index) const {
+    ASSERT(index<m_checkboxes.size());
+    const Checkbox *checkbox=&m_checkboxes[index];
+    return checkbox->value;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -291,7 +302,7 @@ std::string OpenFileDialog::HandleOpen() {
 
 #else
 
-    return OpenFileDialogGTK(m_filters,m_last_path);
+    return OpenFileDialogGTK(m_filters,&m_checkboxes,m_last_path);
 
 #endif
 }
@@ -319,7 +330,7 @@ std::string SaveFileDialog::HandleOpen() {
 
 #else
 
-    return SaveFileDialogGTK(m_filters,m_last_path);
+    return SaveFileDialogGTK(m_filters,&m_checkboxes,m_last_path);
 
 #endif
 

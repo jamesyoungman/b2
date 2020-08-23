@@ -41,13 +41,35 @@ static GtkWidget *CreateFileDialog(const char *title,
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 
-static std::string RunFileDialog(GtkWidget *gdialog) {
+static std::string RunFileDialog(GtkWidget *gdialog,
+                                  std::vector<OpenFileDialog::Checkbox> *checkboxes)
+{
+    GtkWidget *vbox=gtk_vbutton_box_new();
+    std::vector<GtkWidget *> check_widgets;
+    for(const OpenFileDialog::Checkbox &checkbox:*checkboxes) {
+        GtkWidget *check_widget=gtk_check_button_new_with_label(checkbox.caption.c_str());
+        check_widgets.push_back(check_widget);
+        gtk_container_add(GTK_CONTAINER(vbox),check_widget);
+    }
+
+    gtk_file_chooser_set_extra_widget(GTK_FILE_CHOOSER(gdialog),vbox);
+    
     gint gresult=gtk_dialog_run(GTK_DIALOG(gdialog));
 
     std::string result;
     if(gresult==GTK_RESPONSE_ACCEPT) {
         if(const char *name=gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(gdialog))) {
             result.assign(name);
+        }
+
+        for(size_t i=0;i<checkboxes->size();++i) {
+            OpenFileDialog::Checkbox *checkbox=&(*checkboxes)[i];
+            GtkWidget *check_widget=check_widgets[i];
+
+            gboolean active;
+            g_object_get(check_widget,"active",&active,nullptr);
+
+            checkbox->value=!!active;
         }
     }
 
@@ -104,6 +126,7 @@ static void AddFilters(GtkWidget *gdialog,
 //////////////////////////////////////////////////////////////////////////
 
 std::string OpenFileDialogGTK(const std::vector<OpenFileDialog::Filter> &filters,
+                              std::vector<OpenFileDialog::Checkbox> *checkboxes,
                               const std::string &default_path)
 {
     GtkWidget *gdialog=CreateFileDialog("Open File",
@@ -112,13 +135,14 @@ std::string OpenFileDialogGTK(const std::vector<OpenFileDialog::Filter> &filters
     AddFilters(gdialog,filters);
     SetDefaultPath(gdialog,default_path);
     
-    return RunFileDialog(gdialog);
+    return RunFileDialog(gdialog,checkboxes);
 }
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 
 std::string SaveFileDialogGTK(const std::vector<OpenFileDialog::Filter> &filters,
+                              std::vector<OpenFileDialog::Checkbox> *checkboxes,
                               const std::string &default_path)
 {
     GtkWidget *gdialog=CreateFileDialog("Open File",
@@ -128,7 +152,7 @@ std::string SaveFileDialogGTK(const std::vector<OpenFileDialog::Filter> &filters
     SetDefaultPath(gdialog,default_path);
     gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(gdialog),TRUE);
     
-    return RunFileDialog(gdialog);
+    return RunFileDialog(gdialog,checkboxes);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -140,7 +164,7 @@ std::string SelectFolderDialogGTK(const std::string &default_path) {
 
     SetDefaultPath(gdialog,default_path);
 
-    return RunFileDialog(gdialog);
+    return RunFileDialog(gdialog,nullptr);
 }
 
 //////////////////////////////////////////////////////////////////////////
