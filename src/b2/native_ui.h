@@ -97,14 +97,22 @@ public:
         std::vector<std::string> extensions;
     };
 
+    struct Checkbox {
+        std::string caption;
+        bool value=false;
+    };
+
     explicit FileDialog(std::string tag);
 
     void AddFilter(std::string title,const std::vector<std::string> extensions);
     void AddAllFilesFilter();
+
+    void AddCheckbox(std::string caption,bool initial_value);
 protected:
     std::string m_default_dir;
     std::string m_default_name;
     std::vector<Filter> m_filters;
+    std::vector<Checkbox> m_checkboxes;
 private:
 };
 

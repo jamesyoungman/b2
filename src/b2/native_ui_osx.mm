@@ -63,12 +63,15 @@ static void SetDefaultPath(NSSavePanel *panel,const std::string &default_path) {
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 
-static std::string RunModal(NSSavePanel *panel) {
+static NSModalResponse RunModal(NSSavePanel *panel,
+                                std::string *result) {
     auto old_key_window=[NSApp keyWindow];
 
-    std::string result;
-    if([panel runModal]==NSModalResponseOK) {
-        result.assign([[[panel URL] path] UTF8String]);
+    NSModalResponse response=[panel runModal];
+    if(response==NSModalResponseOK) {
+        result->assign([[[panel URL] path] UTF8String]);
+    } else {
+        result->clear();
     }
 
     /* For some reason, OS X doesn't seem to do this
@@ -77,13 +80,14 @@ static std::string RunModal(NSSavePanel *panel) {
      */
     [old_key_window makeKeyWindow];
 
-    return result;
+    return response;
 }
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 
 static std::string DoFileDialogOSX(const std::vector<OpenFileDialog::Filter> &filters,
+                                   std::vector<OpenFileDialog::Checkbox> *checkboxes,
                                    const std::string &default_path,
                                    NSSavePanel *panel)
 {
@@ -119,18 +123,50 @@ static std::string DoFileDialogOSX(const std::vector<OpenFileDialog::Filter> &fi
         }
     }
 
-    return RunModal(panel);
+    NSMutableArray<NSButton *> *buttons=[NSMutableArray array];
+
+    if(!checkboxes->empty()) {
+        for(OpenFileDialog::Checkbox &checkbox:*checkboxes) {
+            NSString *title=[NSString stringWithUTF8String:checkbox.caption.c_str()];
+            NSButton *button=[NSButton checkboxWithTitle:title
+                                                  target:nil
+                                                  action:nil];
+            [button sizeToFit];
+            [buttons addObject:button];
+        }
+
+        NSStackView *stackView=[NSStackView stackViewWithViews:buttons];
+        [stackView setOrientation:NSUserInterfaceLayoutOrientationVertical];
+        [stackView setAlignment:NSLayoutAttributeLeading];
+        [panel setAccessoryView:stackView];
+    }
+
+    std::string path;
+    NSModalResponse response=RunModal(panel,&path);
+    if(response==NSModalResponseOK) {
+        for(size_t i=0;i<checkboxes->size();++i) {
+            NSButton *button=[buttons objectAtIndex:i];
+            NSControlStateValue state=[button state];
+            printf("%s: %ld\n",[[button title] UTF8String],(long)state);
+        }
+    }
+
+    return path;
 }
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 
 std::string OpenFileDialogOSX(const std::vector<OpenFileDialog::Filter> &filters,
+                              std::vector<OpenFileDialog::Checkbox> *checkboxes,
                               const std::string &default_path)
 {
     auto pool=[[NSAutoreleasePool alloc] init];
 
-    std::string result=DoFileDialogOSX(filters,default_path,[NSOpenPanel openPanel]);
+    std::string result=DoFileDialogOSX(filters,
+                                       checkboxes,
+                                       default_path,
+                                       [NSOpenPanel openPanel]);
 
     [pool release];
     pool=nil;
@@ -142,11 +178,15 @@ std::string OpenFileDialogOSX(const std::vector<OpenFileDialog::Filter> &filters
 //////////////////////////////////////////////////////////////////////////
 
 std::string SaveFileDialogOSX(const std::vector<OpenFileDialog::Filter> &filters,
+                              std::vector<OpenFileDialog::Checkbox> *checkboxes,
                               const std::string &default_path)
 {
     auto pool=[[NSAutoreleasePool alloc] init];
 
-    std::string result=DoFileDialogOSX(filters,default_path,[NSSavePanel savePanel]);
+    std::string result=DoFileDialogOSX(filters,
+                                       checkboxes,
+                                       default_path,
+                                       [NSSavePanel savePanel]);
 
     [pool release];
     pool=nil;
@@ -167,7 +207,8 @@ std::string SelectFolderDialogOSX(const std::string &default_path) {
 
     SetDefaultPath(panel,default_path);
 
-    std::string result=RunModal(panel);
+    std::string result;
+    RunModal(panel,&result);
 
     [pool release];
     pool=nil;

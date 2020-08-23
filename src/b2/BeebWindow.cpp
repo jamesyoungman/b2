@@ -141,11 +141,14 @@ BeebWindow::DriveState::DriveState():
 
         this->open_disc_image_file_dialog.AddFilter("BBC disc images",extensions);
         this->open_disc_image_file_dialog.AddAllFilesFilter();
+        this->open_disc_image_file_dialog.AddCheckbox("Write protect",false);
+        this->open_disc_image_file_dialog.AddCheckbox("Auto save",false);
     }
 
     this->new_direct_disc_image_file_dialog.AddFilter("BBC disc images",DISC_IMAGE_EXTENSIONS);
 
     this->open_direct_disc_image_file_dialog.AddFilter("BBC disc images",DISC_IMAGE_EXTENSIONS);
+    this->open_direct_disc_image_file_dialog.AddAllFilesFilter();
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -251,6 +251,18 @@ void FileDialog::AddAllFilesFilter() {
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 
+void FileDialog::AddCheckbox(std::string caption,bool initial_value) {
+    Checkbox c;
+
+    c.caption=std::move(caption);
+    c.value=initial_value;
+
+    m_checkboxes.push_back(std::move(c));
+}
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
 OpenFileDialog::OpenFileDialog(std::string tag):
     FileDialog(std::move(tag))
 {
@@ -271,7 +283,7 @@ std::string OpenFileDialog::HandleOpen() {
 
 #if SYSTEM_OSX
 
-    return OpenFileDialogOSX(m_filters,m_last_path);
+    return OpenFileDialogOSX(m_filters,&m_checkboxes,m_last_path);
 
 #elif SYSTEM_WINDOWS
 
@@ -299,7 +311,7 @@ std::string SaveFileDialog::HandleOpen() {
 
 #if SYSTEM_OSX
 
-    return SaveFileDialogOSX(m_filters,m_last_path);
+    return SaveFileDialogOSX(m_filters,&m_checkboxes,m_last_path);
 
 #elif SYSTEM_WINDOWS
 
